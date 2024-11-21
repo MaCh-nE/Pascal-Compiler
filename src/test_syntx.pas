@@ -1,23 +1,13 @@
-program BasicExample;
+program ExempleUltraMinimal;
 
 const
-    BONUS := 100;
-    MAXSCORE := 1000;
+    MAX := 10;
 
 var
-    num1, num2, sum: integer;
-    points, totalPoints: integer;
-    age: integer;
+    x, y, somme;
 
 begin
-    // Simple assignments
-    num1 := 15;
-    num2 := 25;
-    points := 500;
-    age := 20;
-    
-    // Basic calculations
-    sum := num1 + num2;
-    totalPoints := points + BONUS;
-
+    x := 2;
+    y := 4;
+    somme := x + y;
 end.

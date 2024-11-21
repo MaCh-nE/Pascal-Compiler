@@ -72,12 +72,31 @@ static Token readNumber(char initialChar) {
         number += ch;
     }
 
+    // Check if the next character is alphabetic or part of an invalid identifier
+    if (isalpha(ch)) {
+        number += ch;
+
+        // Continue reading until the invalid identifier ends
+        while ((ch = nextChar()) != EOF && (isalnum(ch) || ch == '_')) {
+            number += ch;
+        }
+
+        if (ch != EOF) {
+            inputFile.putback(ch);
+        }
+
+        // Return an error token for invalid number
+        return createToken(ERROR_TOKEN, "Invalid : " + number);
+    }
+
+    // Put back the non-digit character for further processing
     if (ch != EOF) {
         inputFile.putback(ch);
     }
 
     return createToken(NUMBER_TOKEN, number);
 }
+
 
 // Main Lexical Analysis Function
 Token getNextToken() {

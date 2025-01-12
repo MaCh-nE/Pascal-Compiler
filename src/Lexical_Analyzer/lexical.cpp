@@ -1,6 +1,7 @@
 #include "lexical.h"
 #include <iostream>
 #include <fstream>
+#include <regex>
 #include <cctype>
 
 // Static file stream
@@ -13,16 +14,21 @@ const std::string TOKEN_NAMES[] = {
     "PV_TOKEN", "PT_TOKEN", "PLUS_TOKEN", "MOINS_TOKEN", "MULT_TOKEN", "DIV_TOKEN",
     "VIR_TOKEN", "AFF_TOKEN", "INF_TOKEN", "INFEG_TOKEN", "SUP_TOKEN", "SUPEG_TOKEN",
     "DIFF_TOKEN", "PO_TOKEN", "PF_TOKEN", "FIN_TOKEN", "NUMBER_TOKEN", "IDENTIFIER_TOKEN",
-    "ERROR_TOKEN", "EOF_TOKEN"
+    "ERROR_TOKEN", "EOF_TOKEN", "ARRAY_TOKEN", "RECORD_TOKEN", "ELSE_TOKEN", "FOR_TOKEN", 
+    "CASE_TOKEN", "REPEAT_TOKEN", "REAL_TOKEN"
 };
+
 
 // Keywords Map
 static std::unordered_map<std::string, TokenType> keywords = {
     {"program", PROGRAM_TOKEN}, {"const", CONST_TOKEN}, {"var", VAR_TOKEN},
     {"begin", BEGIN_TOKEN}, {"end", END_TOKEN}, {"if", IF_TOKEN},
     {"then", THEN_TOKEN}, {"while", WHILE_TOKEN}, {"do", DO_TOKEN},
-    {"read", READ_TOKEN}, {"write", WRITE_TOKEN}
+    {"read", READ_TOKEN}, {"write", WRITE_TOKEN}, {"else", ELSE_TOKEN},
+    {"array", ARRAY_TOKEN}, {"record", RECORD_TOKEN}, {"for", FOR_TOKEN},
+    {"case", CASE_TOKEN}, {"repeat", REPEAT_TOKEN}
 };
+
 
 // Special Symbols Map
 static std::unordered_map<std::string, TokenType> specialSymbols = {
@@ -50,7 +56,7 @@ static Token readIdentifier(char initialChar) {
     std::string identifier(1, initialChar);
     char ch;
 
-    while ((ch = nextChar()) != EOF && isalnum(ch)) {
+    while ((ch = nextChar()) != EOF && (isalnum(ch) || ch == '_')) {
         identifier += ch;
     }
 
@@ -58,9 +64,18 @@ static Token readIdentifier(char initialChar) {
         inputFile.putback(ch);
     }
 
+    // Regex for identifiers
+    std::regex identifierRegex("^[a-zA-Z][a-zA-Z0-9_]*$");
+    if (!std::regex_match(identifier, identifierRegex)) {
+        return createToken(ERROR_TOKEN, "Invalid identifier: " + identifier);
+    }
+
+    // Check if it's a keyword
     if (keywords.find(identifier) != keywords.end()) {
         return createToken(keywords[identifier], identifier);
     }
+
+    // Otherwise, it's a valid identifier
     return createToken(IDENTIFIER_TOKEN, identifier);
 }
 
@@ -102,13 +117,57 @@ static Token readNumber(char initialChar) {
 Token getNextToken() {
     char ch;
 
-    do {
+    // Loop to ignore whitespaces and comments
+    while (true) {
         ch = nextChar();
+
+        // Handle end of file
         if (ch == EOF) {
             return createToken(EOF_TOKEN, "EOF");
         }
-    } while (isspace(ch));
 
+        // Skip whitespaces
+        if (isspace(ch)) {
+            continue;
+        }
+
+        // Skip Pascal comments: { ... }
+        if (ch == '{') {
+            while ((ch = nextChar()) != EOF && ch != '}') {
+                // Continue
+            }
+            if (ch == EOF) {
+                return createToken(ERROR_TOKEN, "Unclosed comment starting with '{'");
+            }
+            continue; // Restart after the comment
+        }
+
+        // Skip Pascal comments: (* ... *)
+        if (ch == '(') {
+            char next = nextChar();
+            if (next == '*') {
+                while ((ch = nextChar()) != EOF) {
+                    if (ch == '*') {
+                        char closing = nextChar();
+                        if (closing == ')') {
+                            break; // Comment ended
+                        }
+                        inputFile.putback(closing);
+                    }
+                }
+                if (ch == EOF) {
+                    return createToken(ERROR_TOKEN, "Unclosed comment starting with '(*'");
+                }
+                continue; // After comment, restart the loop
+            }
+            inputFile.putback(next); // Put back non-comment character
+        }
+
+        // Non-whitespace and non-comment character found
+        break;
+    }
+
+    // Handle identifiers, numbers, and symbols
     if (isalpha(ch)) {
         return readIdentifier(ch);
     }
@@ -117,6 +176,7 @@ Token getNextToken() {
         return readNumber(ch);
     }
 
+    // Handle special symbols and multi-character operators
     std::string symbol(1, ch);
     char next = nextChar();
 
@@ -157,6 +217,7 @@ Token getNextToken() {
 
     return createToken(ERROR_TOKEN, symbol);
 }
+
 
 std::vector<Token> getTokensFromFile(const std::string& filename) {
     inputFile.open(filename);

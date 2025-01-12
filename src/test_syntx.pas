@@ -1,13 +1,31 @@
-program ExempleUltraMinimal;
-
+program TestExample;
 const
-    MAX := 10;
+  pi = 3.14159;
+  max_value = 100;
 
 var
-    x, y, somme;
+  x, y, result: real;
+  i: integer;
 
 begin
-    x := 2;
-    y := 4;
-    somme := x + y;
-end.
+  write('Enter a number:');
+  read(x);
+
+  if x > pi then
+  begin
+    write('x is greater than pi');
+  end
+  else
+  begin
+    write('x is not greater than pi');
+  end;
+
+  for i := 1 to max_value do
+  begin
+    y := x * i;
+    write('y = ', y:0:2);
+  end;
+
+  case i of
+    1: write('i is one');
+    2: write('

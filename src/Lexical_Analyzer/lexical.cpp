@@ -13,10 +13,11 @@ const std::string TOKEN_NAMES[] = {
     "THEN_TOKEN", "WHILE_TOKEN", "DO_TOKEN", "READ_TOKEN", "WRITE_TOKEN",
     "PV_TOKEN", "PT_TOKEN", "PLUS_TOKEN", "MOINS_TOKEN", "MULT_TOKEN", "DIV_TOKEN",
     "VIR_TOKEN", "AFF_TOKEN", "INF_TOKEN", "INFEG_TOKEN", "SUP_TOKEN", "SUPEG_TOKEN",
-    "DIFF_TOKEN", "PO_TOKEN", "PF_TOKEN", "FIN_TOKEN", "NUMBER_TOKEN", "IDENTIFIER_TOKEN",
-    "ERROR_TOKEN", "EOF_TOKEN", "ARRAY_TOKEN", "RECORD_TOKEN", "ELSE_TOKEN", "FOR_TOKEN", 
-    "CASE_TOKEN", "REPEAT_TOKEN", "REAL_TOKEN"
+    "DIFF_TOKEN", "PO_TOKEN", "PF_TOKEN", "FIN_TOKEN", "NUMBER_TOKEN", "REAL_NUMBER_TOKEN",
+    "IDENTIFIER_TOKEN", "ERROR_TOKEN", "EOF_TOKEN", "ELSE_TOKEN", "ARRAY_TOKEN",
+    "RECORD_TOKEN", "FOR_TOKEN", "CASE_TOKEN", "REPEAT_TOKEN"
 };
+
 
 
 // Keywords Map
@@ -219,6 +220,28 @@ Token getNextToken() {
 }
 
 
+//std::vector<Token> getTokensFromFile(const std::string& filename) {
+//    inputFile.open(filename);
+//
+//    if (!inputFile.is_open()) {
+//        std::cout << "Le Fichier '" << filename << "' ne s'ouvre pas ou n'existe pas." << std::endl;
+//        return std::vector<Token>();
+//    }
+//
+//    std::cout << "Fichier ouvert: " << filename << std::endl;
+//
+//    std::vector<Token> tokens;
+//    Token token;
+//
+//    do {
+//        token = getNextToken();
+//        tokens.push_back(token);
+//    } while (token.type != EOF_TOKEN);
+//
+//    inputFile.close();
+//    return tokens;
+//}
+
 std::vector<Token> getTokensFromFile(const std::string& filename) {
     inputFile.open(filename);
 
@@ -235,8 +258,23 @@ std::vector<Token> getTokensFromFile(const std::string& filename) {
     do {
         token = getNextToken();
         tokens.push_back(token);
+
+        // Log the token details to the terminal
+        std::cout << "Token Type: " << TOKEN_NAMES[token.type]
+            << ", Value: '" << token.value << "'" << std::endl;
+
     } while (token.type != EOF_TOKEN);
 
     inputFile.close();
     return tokens;
+}
+
+int main() {
+    std::string filePath = "C:\\Users\\Lenovo\\Desktop\\Pascal-Compiler\\src\\test_syntx.pas";
+    std::vector<Token> tokens = getTokensFromFile(filePath);
+
+    // Number of tokens for confirmation
+    std::cout << "Total tokens found: " << tokens.size() << std::endl;
+
+    return 0;
 }
